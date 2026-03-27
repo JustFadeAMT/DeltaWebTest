@@ -143,9 +143,9 @@ export default function PnlChart({ snapshots, positionId }: PnlChartProps) {
               labelFormatter={(ts) =>
                 format(new Date(ts as number), 'MMM dd HH:mm:ss')
               }
-              formatter={(value: number, name: string) => [
-                `$${value.toFixed(2)}`,
-                name.charAt(0).toUpperCase() + name.slice(1) + ' PnL',
+              formatter={(value, name) => [
+                `$${Number(value).toFixed(2)}`,
+                String(name).charAt(0).toUpperCase() + String(name).slice(1) + ' PnL',
               ]}
             />
             {visibleLines.includes('total') && (

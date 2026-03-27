@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     max_hedge_size: float = 100.0
 
     # ── CORS ─────────────────────────────────────────────────────────
-    cors_origins: str = "http://localhost:3000,http://localhost:3001"
+    cors_origins: str = "http://localhost:3000,http://localhost:3001,http://178.104.37.217:3000"
 
     @property
     def deribit_base_url(self) -> str:

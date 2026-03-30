@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { TrendingUp, TrendingDown, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import PnlChart from '@/components/charts/PnlChart';
@@ -105,6 +105,14 @@ export default function PositionCard({ position: pos, onClose }: PositionCardPro
         </div>
         <div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+            Current Perp Price
+          </div>
+          <div style={{ fontSize: '14px', fontWeight: 600 }}>
+            ${pos.current_perp_price?.toFixed(2) ?? '–'}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
             Delta / IV
           </div>
           <div style={{ fontSize: '14px', fontWeight: 600 }}>
@@ -124,7 +132,7 @@ export default function PositionCard({ position: pos, onClose }: PositionCardPro
             Created
           </div>
           <div style={{ fontSize: '14px', fontWeight: 500 }}>
-            {format(new Date(pos.created_at), 'MMM dd HH:mm')}
+            {formatInTimeZone(new Date(pos.created_at), 'Asia/Bangkok', 'MMM dd HH:mm')}
           </div>
         </div>
       </div>
@@ -163,8 +171,71 @@ export default function PositionCard({ position: pos, onClose }: PositionCardPro
         </div>
       </div>
 
+      {/* Cost & Margin */}
+      {(() => {
+        const optionCost = pos.entry_option_price * pos.option_size;
+        const perpNotional = pos.entry_perp_price * pos.perp_size;
+        const estMargin = perpNotional * 0.1; // ~10x leverage on Deribit
+        const totalCost = optionCost + estMargin;
+        return (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: '16px',
+              padding: '16px',
+              background: 'var(--bg-input)',
+              borderRadius: '10px',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                Option Cost
+              </div>
+              <div style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                ${optionCost.toFixed(2)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                Perp Notional
+              </div>
+              <div style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                ${perpNotional.toFixed(2)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                Est. Margin Used
+              </div>
+              <div style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)' }}>
+                ${estMargin.toFixed(2)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                Total Position Cost
+              </div>
+              <div style={{ fontSize: '14px', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'var(--accent-blue)' }}>
+                ${totalCost.toFixed(2)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Chart */}
-      {isOpen && <PnlChart snapshots={snapshots || []} positionId={pos.id} />}
+      {isOpen && (
+        <PnlChart
+          snapshots={snapshots || []}
+          positionId={pos.id}
+          currentPnl={{
+            option_pnl: pos.option_pnl,
+            perp_pnl: pos.perp_pnl,
+            total_pnl: pos.total_pnl,
+          }}
+        />
+      )}
 
       {/* Notes */}
       {pos.notes && (

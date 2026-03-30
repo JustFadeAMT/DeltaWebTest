@@ -11,12 +11,15 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import type { PnlSnapshot } from '@/types';
+
+const TZ = 'Asia/Bangkok';
 
 interface PnlChartProps {
   snapshots: PnlSnapshot[];
   positionId: number;
+  currentPnl?: { option_pnl: number; perp_pnl: number; total_pnl: number };
 }
 
 type ChartView = 'total' | 'option' | 'perp';
@@ -27,7 +30,7 @@ const COLORS = {
   perp: '#06b6d4',
 };
 
-export default function PnlChart({ snapshots, positionId }: PnlChartProps) {
+export default function PnlChart({ snapshots, positionId, currentPnl }: PnlChartProps) {
   const [view, setView] = useState<ChartView>('total');
 
   if (!snapshots || snapshots.length === 0) {
@@ -54,7 +57,7 @@ export default function PnlChart({ snapshots, positionId }: PnlChartProps) {
     );
   }
 
-  const chartData = snapshots.map((s) => ({
+  const snapshotData = snapshots.map((s) => ({
     time: new Date(s.timestamp).getTime(),
     total: s.total_pnl,
     option: s.option_pnl,
@@ -62,6 +65,21 @@ export default function PnlChart({ snapshots, positionId }: PnlChartProps) {
     underlying: s.underlying_price,
     delta: s.option_delta,
   }));
+
+  // Append a synthetic "now" point so chart right edge matches card PnL
+  const chartData = currentPnl
+    ? [
+        ...snapshotData,
+        {
+          time: Date.now(),
+          total: currentPnl.total_pnl,
+          option: currentPnl.option_pnl,
+          perp: currentPnl.perp_pnl,
+          underlying: snapshotData.at(-1)?.underlying ?? 0,
+          delta: snapshotData.at(-1)?.delta ?? 0,
+        },
+      ]
+    : snapshotData;
 
   const visibleLines: ChartView[] =
     view === 'total' ? ['total', 'option', 'perp'] : [view];
@@ -123,7 +141,7 @@ export default function PnlChart({ snapshots, positionId }: PnlChartProps) {
               dataKey="time"
               type="number"
               domain={['dataMin', 'dataMax']}
-              tickFormatter={(ts) => format(new Date(ts), 'HH:mm')}
+              tickFormatter={(ts) => formatInTimeZone(new Date(ts), TZ, 'HH:mm')}
               stroke="var(--text-muted)"
               fontSize={11}
             />
@@ -141,7 +159,7 @@ export default function PnlChart({ snapshots, positionId }: PnlChartProps) {
                 color: 'var(--text-primary)',
               }}
               labelFormatter={(ts) =>
-                format(new Date(ts as number), 'MMM dd HH:mm:ss')
+                formatInTimeZone(new Date(ts as number), TZ, 'MMM dd HH:mm:ss')
               }
               formatter={(value, name) => [
                 `$${Number(value).toFixed(2)}`,

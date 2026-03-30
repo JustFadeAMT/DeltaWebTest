@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatInTimeZone } from 'date-fns-tz';
 import { TrendingUp, TrendingDown, X } from 'lucide-react';
 import { api } from '@/lib/api';
+import { parseUTC, TIMEZONE } from '@/lib/timezone';
 import PnlChart from '@/components/charts/PnlChart';
 import type { Position } from '@/types';
 
@@ -132,7 +133,7 @@ export default function PositionCard({ position: pos, onClose }: PositionCardPro
             Created
           </div>
           <div style={{ fontSize: '14px', fontWeight: 500 }}>
-            {formatInTimeZone(new Date(pos.created_at), 'Asia/Bangkok', 'MMM dd HH:mm')}
+            {formatInTimeZone(parseUTC(pos.created_at), TIMEZONE, 'MMM dd HH:mm')}
           </div>
         </div>
       </div>

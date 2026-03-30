@@ -13,8 +13,7 @@ import {
 } from 'recharts';
 import { formatInTimeZone } from 'date-fns-tz';
 import type { PnlSnapshot } from '@/types';
-
-const TZ = 'Asia/Bangkok';
+import { parseUTC, TIMEZONE } from '@/lib/timezone';
 
 interface PnlChartProps {
   snapshots: PnlSnapshot[];
@@ -58,7 +57,7 @@ export default function PnlChart({ snapshots, positionId, currentPnl }: PnlChart
   }
 
   const snapshotData = snapshots.map((s) => ({
-    time: new Date(s.timestamp).getTime(),
+    time: parseUTC(s.timestamp).getTime(),
     total: s.total_pnl,
     option: s.option_pnl,
     perp: s.perp_pnl,
@@ -141,7 +140,7 @@ export default function PnlChart({ snapshots, positionId, currentPnl }: PnlChart
               dataKey="time"
               type="number"
               domain={['dataMin', 'dataMax']}
-              tickFormatter={(ts) => formatInTimeZone(new Date(ts), TZ, 'HH:mm')}
+              tickFormatter={(ts) => formatInTimeZone(new Date(ts), TIMEZONE, 'HH:mm')}
               stroke="var(--text-muted)"
               fontSize={11}
             />
@@ -159,7 +158,7 @@ export default function PnlChart({ snapshots, positionId, currentPnl }: PnlChart
                 color: 'var(--text-primary)',
               }}
               labelFormatter={(ts) =>
-                formatInTimeZone(new Date(ts as number), TZ, 'MMM dd HH:mm:ss')
+                formatInTimeZone(new Date(ts as number), TIMEZONE, 'MMM dd HH:mm:ss')
               }
               formatter={(value, name) => [
                 `$${Number(value).toFixed(2)}`,

@@ -96,6 +96,12 @@ export const api = {
   deletePosition: (id: number) =>
     request<{ message: string }>(`/api/positions/${id}`, { method: 'DELETE' }),
 
+  clearClosedPositions: (mode?: string) => {
+    const params = new URLSearchParams();
+    if (mode) params.set('mode', mode);
+    return request<{ message: string; deleted: number }>(`/api/positions/closed?${params}`, { method: 'DELETE' });
+  },
+
   getPositionHistory: (id: number, limit = 500) =>
     request<PnlSnapshot[]>(`/api/positions/${id}/history?limit=${limit}`),
 

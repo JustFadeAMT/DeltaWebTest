@@ -1,13 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import PositionCard from '@/components/positions/PositionCard';
 import CreatePositionForm from '@/components/positions/CreatePositionForm';
 
 export default function PaperTradingPage() {
   const queryClient = useQueryClient();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Fetch paper positions
   const { data: positions, isLoading } = useQuery({
@@ -22,6 +24,16 @@ export default function PaperTradingPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['positions'] });
       queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+    },
+  });
+
+  // Clear all closed positions mutation
+  const clearClosedMutation = useMutation({
+    mutationFn: () => api.clearClosedPositions('paper'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['positions'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      setShowClearConfirm(false);
     },
   });
 
@@ -90,16 +102,88 @@ export default function PaperTradingPage() {
       {/* Closed Positions */}
       {closedPositions.length > 0 && (
         <div>
-          <h2
-            style={{
-              fontSize: '18px',
-              fontWeight: 600,
-              marginBottom: '16px',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            Closed Positions ({closedPositions.length})
-          </h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2
+              style={{
+                fontSize: '18px',
+                fontWeight: 600,
+                color: 'var(--text-secondary)',
+              }}
+            >
+              Closed Positions ({closedPositions.length})
+            </h2>
+
+            {/* Clear Closed Button / Confirm */}
+            {!showClearConfirm ? (
+              <button
+                onClick={() => setShowClearConfirm(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 14px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'transparent',
+                  border: '1px solid var(--border-primary)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--red)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--text-muted)';
+                  e.currentTarget.style.borderColor = 'var(--border-primary)';
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <Trash2 size={14} />
+                Clear History
+              </button>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--red)', fontWeight: 600 }}>
+                  Delete {closedPositions.length} closed position{closedPositions.length > 1 ? 's' : ''}?
+                </span>
+                <button
+                  onClick={() => clearClosedMutation.mutate()}
+                  disabled={clearClosedMutation.isPending}
+                  className="btn-danger"
+                  style={{
+                    padding: '5px 12px',
+                    fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Trash2 size={13} />
+                  {clearClosedMutation.isPending ? 'Deleting...' : 'Confirm'}
+                </button>
+                <button
+                  onClick={() => setShowClearConfirm(false)}
+                  style={{
+                    padding: '5px 12px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: 'var(--text-muted)',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-primary)',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {closedPositions.map((pos) => (
               <PositionCard key={pos.id} position={pos} />
@@ -110,3 +194,4 @@ export default function PaperTradingPage() {
     </div>
   );
 }
+

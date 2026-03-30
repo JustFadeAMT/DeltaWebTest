@@ -47,6 +47,9 @@ async def lifespan(app: FastAPI):
         seconds=settings.snapshot_interval_seconds,
         id="pnl_snapshots",
         replace_existing=True,
+        misfire_grace_time=30,   # Don't skip if slightly delayed
+        max_instances=1,         # Prevent overlapping runs
+        coalesce=True,           # Combine missed runs into one
     )
     scheduler.start()
     logger.info(

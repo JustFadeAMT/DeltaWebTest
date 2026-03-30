@@ -237,3 +237,17 @@ async def shutdown_deribit_client() -> None:
     if _client:
         await _client.close()
         _client = None
+
+
+async def reset_deribit_client() -> None:
+    """Close and recreate the Deribit client (for recovery from persistent errors)."""
+    global _client
+    logger.info("Resetting Deribit client...")
+    if _client:
+        try:
+            await _client.close()
+        except Exception:
+            pass
+        _client = None
+    # Will be lazily recreated on next get_deribit_client() call
+

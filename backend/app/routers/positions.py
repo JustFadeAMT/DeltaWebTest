@@ -79,6 +79,35 @@ async def create_live_position(
     )
 
 
+@router.delete("/closed")
+async def clear_closed_positions(
+    mode: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete all closed positions (and their PnL snapshots)."""
+    query = select(Position).where(Position.status == PositionStatus.CLOSED)
+    if mode:
+        query = query.where(Position.mode == mode)
+
+    result = await db.execute(query)
+    closed = result.scalars().all()
+
+    if not closed:
+        return {"message": "No closed positions to delete", "deleted": 0}
+
+    # Delete PnL snapshots for each closed position
+    closed_ids = [p.id for p in closed]
+    await db.execute(
+        PnlSnapshot.__table__.delete().where(PnlSnapshot.position_id.in_(closed_ids))
+    )
+
+    for pos in closed:
+        await db.delete(pos)
+
+    await db.commit()
+    return {"message": f"Deleted {len(closed)} closed positions", "deleted": len(closed)}
+
+
 @router.get("/{position_id}", response_model=PositionResponse)
 async def get_position(
     position_id: int,

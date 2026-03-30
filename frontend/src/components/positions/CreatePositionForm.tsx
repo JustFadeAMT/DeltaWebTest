@@ -357,6 +357,97 @@ export default function CreatePositionForm({ mode, onSuccess }: CreatePositionFo
         </div>
       </div>
 
+      {/* Cost Estimation */}
+      {hedge && strike && (
+        <div
+          style={{
+            padding: '16px',
+            background: 'rgba(139, 92, 246, 0.06)',
+            border: '1px solid rgba(139, 92, 246, 0.2)',
+            borderRadius: '10px',
+            marginBottom: '20px',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '13px',
+              fontWeight: 700,
+              color: 'var(--accent-purple)',
+              marginBottom: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            💰 Estimated Cost Breakdown
+          </div>
+          {(() => {
+            const optionPremium = hedge.option_price * optionSize;
+            const perpNotional = hedge.underlying_price * perpSize;
+            const estMargin = perpNotional * 0.1; // ~10x leverage on Deribit
+            const totalCapital = optionPremium + estMargin;
+            return (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                  gap: '12px',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                    Option Price
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                    ${hedge.option_price.toFixed(2)}
+                    {hedge.option_price_coin != null && (
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '4px' }}>
+                        ({hedge.option_price_coin.toFixed(4)} {symbol})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                    Option Premium ({optionSize}x)
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                    ${optionPremium.toFixed(2)}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                    Perp Notional
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                    ${perpNotional.toFixed(2)}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                    Est. Margin (10x)
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)' }}>
+                    ${estMargin.toFixed(2)}
+                  </div>
+                </div>
+                <div style={{ gridColumn: 'span 1' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                    Total Capital Required
+                  </div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--accent-cyan)' }}>
+                    ${totalCapital.toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Premium + Margin
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Error */}
       {createMutation.isError && (
         <div

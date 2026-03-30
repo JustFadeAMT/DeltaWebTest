@@ -11,7 +11,9 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react';
+import { formatInTimeZone } from 'date-fns-tz';
 import { api } from '@/lib/api';
+import { parseUTC, TIMEZONE } from '@/lib/timezone';
 import { useAppStore } from '@/lib/store';
 import { useEffect } from 'react';
 
@@ -220,7 +222,7 @@ export default function MonitorPage() {
                     <span style={{ color: 'var(--text-primary)' }}>{evt.message}</span>
                   </div>
                   <span style={{ color: 'var(--text-muted)', fontSize: '11px', whiteSpace: 'nowrap' }}>
-                    {new Date(evt.created_at).toLocaleTimeString()}
+                    {formatInTimeZone(parseUTC(evt.created_at), TIMEZONE, 'HH:mm:ss')}
                   </span>
                 </div>
               ))

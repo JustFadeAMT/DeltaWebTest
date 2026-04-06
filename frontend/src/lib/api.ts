@@ -102,8 +102,8 @@ export const api = {
     return request<{ message: string; deleted: number }>(`/api/positions/closed?${params}`, { method: 'DELETE' });
   },
 
-  getPositionHistory: (id: number, limit = 500) =>
-    request<PnlSnapshot[]>(`/api/positions/${id}/history?limit=${limit}`),
+  getPositionHistory: (id: number) =>
+    request<PnlSnapshot[]>(`/api/positions/${id}/history`),
 
   // Portfolio
   getPortfolioSummary: () =>

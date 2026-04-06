@@ -6,7 +6,7 @@ import { TrendingUp, TrendingDown, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { parseUTC, TIMEZONE } from '@/lib/timezone';
 import PnlChart from '@/components/charts/PnlChart';
-import type { Position } from '@/types';
+import type { PnlSnapshot, Position } from '@/types';
 
 interface PositionCardProps {
   position: Position;
@@ -34,6 +34,8 @@ export default function PositionCard({ position: pos, onClose }: PositionCardPro
     queryKey: ['position-history', pos.id],
     queryFn: () => api.getPositionHistory(pos.id),
     refetchInterval: 15000,
+    staleTime: 0,
+    placeholderData: (prev: PnlSnapshot[] | undefined) => prev,
     enabled: pos.status === 'open',
   });
 

@@ -158,15 +158,17 @@ async def delete_position(
 @router.get("/{position_id}/history", response_model=list[PnlSnapshotResponse])
 async def get_position_history(
     position_id: int,
-    limit: int = Query(500, ge=1, le=5000),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get PnL snapshot history for a position."""
+    """Get PnL snapshot history for a position.
+
+    Returns ALL snapshots in chronological order — data is kept for the
+    entire lifetime of the position until it is closed/deleted.
+    """
     result = await db.execute(
         select(PnlSnapshot)
         .where(PnlSnapshot.position_id == position_id)
         .order_by(PnlSnapshot.timestamp.asc())
-        .limit(limit)
     )
     snapshots = result.scalars().all()
     return snapshots
